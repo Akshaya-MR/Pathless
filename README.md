@@ -4,6 +4,18 @@
 
 > Own the night. Find your line.
 
+## Screenshots
+
+Screenshot slots for the menu and race gameplay. Add images under `docs/screenshots/` and replace each placeholder with a Markdown image when ready.
+
+| Main menu | In-race gameplay |
+| --- | --- |
+| *Add `docs/screenshots/main-menu.png` here* | *Add `docs/screenshots/race-gameplay.png` here* |
+
+| Car selection | Pause menu |
+| --- | --- |
+| *Add `docs/screenshots/car-selection.png` here* | *Add `docs/screenshots/pause-menu.png` here* |
+
 ## Game at a glance
 
 - **Genre:** Cyberpunk / synthwave arcade racing
@@ -73,6 +85,10 @@ Add more music tracks to `Assets/music/`; the Unity editor refreshes the playlis
 | Rebuild development track | F2 |
 
 Gamepad input is also supported through Unity's Input System.
+
+## Download and play
+
+Download the latest Windows 64-bit build from the [Pathless GitHub Releases page](https://github.com/Akshaya-MR/Pathless/releases/latest). Extract the downloaded ZIP, open the extracted folder, and run `Pathless.exe`. Press **Enter** at the menu to start the race.
 
 ## Run the project
 
