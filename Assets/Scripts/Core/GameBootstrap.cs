@@ -81,6 +81,21 @@ namespace TheRacer
             CaptureRenderSettings();
             ConfigureEnvironment();
             BuildLights();
+            // [MENU] Defer race construction until the menu selection is final; the disabled path remains the original startup.
+            if (MainMenuController.Enabled && !MainMenuController.HasShownMenu)
+            {
+                Canvas menuHudCanvas = UIBuilder.CreateCanvas(transform, 100);
+                SynthwaveHUD menuHud = menuHudCanvas.gameObject.AddComponent<SynthwaveHUD>();
+                menuHud.Configure(null, null, null, null, null, hudCornerBadgeSize,
+                    hudCornerHorizontalOffset, hudCornerVerticalOffset);
+                CanvasGroup menuHudGroup = menuHudCanvas.gameObject.AddComponent<CanvasGroup>();
+                menuHudGroup.alpha = 0f;
+                menuHudGroup.interactable = false;
+                menuHudGroup.blocksRaycasts = false;
+                MainMenuController menu = gameObject.AddComponent<MainMenuController>();
+                menu.Initialize(this);
+                return;
+            }
             BuildWorld();
             _raceAudio = gameObject.AddComponent<RaceAudioController>();
             _raceAudio.Configure(_carController);
@@ -307,6 +322,16 @@ namespace TheRacer
 
         private void Update()
         {
+            // [MENU] Consume start/pause edges while the main menu is open so they cannot leak into the race flow.
+            if (MainMenuController.IsMenuOpen)
+            {
+                if (_playerInput != null)
+                {
+                    _playerInput.RaceStartPressed.ToString();
+                    _playerInput.PausePressed.ToString();
+                }
+                return;
+            }
             if (_playerInput != null && _playerInput.DevTrackRebuildPressed)
                 BuildTrack();
             SynthwaveHUD hud = GetComponentInChildren<SynthwaveHUD>();
@@ -357,6 +382,27 @@ namespace TheRacer
             yield return new WaitForSecondsRealtime(0.55f);
             if (hud != null) hud.HideCountdown();
             _countdownRoutine = null;
+        }
+
+        // [MENU] The selector commits its registry ID before this original world/race setup path runs.
+        public void StartRaceFromMenu(VehicleId selectedVehicle)
+        {
+            if (_carController != null || _raceStarted || _countdownRoutine != null) return;
+            VehicleDefinition[] vehicles = VehicleRegistry.All;
+            int selectedIndex = 0;
+            for (int i = 0; i < vehicles.Length; i++)
+                if (vehicles[i].Id == selectedVehicle) { selectedIndex = i; break; }
+            playerVehicleId = vehicles.Length > 0 ? vehicles[selectedIndex].Id : VehicleId.SilverCoupe;
+            PlayerPrefs.SetInt("Pathless_SelectedCar", selectedIndex);
+            PlayerPrefs.Save();
+            BuildWorld();
+            _raceAudio = gameObject.AddComponent<RaceAudioController>();
+            _raceAudio.Configure(_carController);
+            // [MENU] Reveal the prebuilt HUD after the world and selected car are ready.
+            SynthwaveHUD raceHud = GetComponentInChildren<SynthwaveHUD>(true);
+            CanvasGroup hudGroup = raceHud != null ? raceHud.GetComponent<CanvasGroup>() : null;
+            if (hudGroup != null) { hudGroup.alpha = 1f; hudGroup.interactable = true; hudGroup.blocksRaycasts = true; }
+            _countdownRoutine = StartCoroutine(PlayStartCountdown());
         }
 
         private void BuildCamera(CarController target, PlayerCarInput input)
