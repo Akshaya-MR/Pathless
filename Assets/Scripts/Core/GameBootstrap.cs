@@ -471,10 +471,18 @@ namespace TheRacer
     {
         [SerializeField] private AudioClip[] clips = new AudioClip[0];
         [SerializeField] private AudioClip engineStartClip;
+        [SerializeField] private AudioClip countdownClip;
+        [SerializeField] private AudioClip engineRevClip;
+        [SerializeField] private AudioClip collisionClip;
         public AudioClip[] Clips => clips;
         public AudioClip EngineStartClip => engineStartClip;
+        public AudioClip CountdownClip => countdownClip;
+        public AudioClip EngineRevClip => engineRevClip;
+        public AudioClip CollisionClip => collisionClip;
         public void SetClips(AudioClip[] value) => clips = value ?? new AudioClip[0];
         public void SetEngineStartClip(AudioClip value) => engineStartClip = value;
+        public void SetRaceEffects(AudioClip countdown, AudioClip engineRev, AudioClip collision)
+        { countdownClip = countdown; engineRevClip = engineRev; collisionClip = collision; }
     }
 
     /// <summary>Race music and countdown/collision sound effects for the runtime race.</summary>
@@ -490,6 +498,9 @@ namespace TheRacer
         private AudioClip[] _clips;
         private int _lastClip = -1;
         private AudioClip _engineStartClip;
+        private AudioClip _countdownVoiceClip;
+        private AudioClip _engineRevClip;
+        private AudioClip _collisionClip;
         private AudioClip _impactClip;
         private AudioClip _countdownClip;
         private AudioClip _goClip;
@@ -511,6 +522,9 @@ namespace TheRacer
             MusicPlaylistCatalog catalog = Resources.Load<MusicPlaylistCatalog>("MusicPlaylist");
             _clips = catalog != null ? catalog.Clips : null;
             _engineStartClip = catalog != null ? catalog.EngineStartClip : null;
+            _countdownVoiceClip = catalog != null ? catalog.CountdownClip : null;
+            _engineRevClip = catalog != null ? catalog.EngineRevClip : null;
+            _collisionClip = catalog != null ? catalog.CollisionClip : null;
             _impactClip = CreateImpactClip();
             _countdownClip = CreateToneClip("Countdown Beep", 660f, 0.13f);
             _goClip = CreateToneClip("Race Go Beep", 990f, 0.34f);
@@ -531,11 +545,17 @@ namespace TheRacer
             float countdownLevel = Mathf.Clamp(effectsVolume * 1.45f, 0f, 1f);
             float engineLevel = Mathf.Clamp(effectsVolume * (1.05f + (3 - count) * 0.12f), 0f, 1f);
             _effectsSource.PlayOneShot(_countdownClip, countdownLevel);
+            if (count == 3 && _countdownVoiceClip != null)
+                _effectsSource.PlayOneShot(_countdownVoiceClip, Mathf.Clamp01(effectsVolume * 1.25f));
             if (_engineStartClip != null)
                 _effectsSource.PlayOneShot(_engineStartClip, engineLevel);
         }
 
-        public void PlayGoCue() => _effectsSource.PlayOneShot(_goClip, Mathf.Clamp(effectsVolume * 1.5f, 0f, 1f));
+        public void PlayGoCue()
+        {
+            if (_engineRevClip != null) _effectsSource.PlayOneShot(_engineRevClip, effectsVolume);
+            _effectsSource.PlayOneShot(_goClip, Mathf.Clamp(effectsVolume * 1.5f, 0f, 1f));
+        }
 
         public void PlayRaceMusic()
         {
@@ -568,7 +588,20 @@ namespace TheRacer
             if ((contact - audio._playerCar.transform.position).sqrMagnitude > audio.collisionPlayerRadius * audio.collisionPlayerRadius) return;
             if (Time.unscaledTime - audio._lastImpactTime < 0.16f) return;
             audio._lastImpactTime = Time.unscaledTime;
-            audio._effectsSource.PlayOneShot(audio._impactClip, audio.effectsVolume);
+            audio._effectsSource.PlayOneShot(audio._collisionClip != null ? audio._collisionClip : audio._impactClip,
+                audio.effectsVolume);
+        }
+
+        public static void NotifyObstacleHit(CarController car)
+        {
+            RaceAudioController audio = FindAnyObjectByType<RaceAudioController>();
+            if (audio == null || audio._playerCar == null || car == null) return;
+            if ((car.transform.position - audio._playerCar.transform.position).sqrMagnitude
+                > audio.collisionPlayerRadius * audio.collisionPlayerRadius) return;
+            if (Time.unscaledTime - audio._lastImpactTime < 0.16f) return;
+            audio._lastImpactTime = Time.unscaledTime;
+            audio._effectsSource.PlayOneShot(audio._collisionClip != null ? audio._collisionClip : audio._impactClip,
+                audio.effectsVolume);
         }
 
         private static AudioClip CreateToneClip(string clipName, float frequency, float duration)

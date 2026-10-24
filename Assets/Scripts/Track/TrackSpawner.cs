@@ -211,6 +211,7 @@ namespace TheRacer
             }
             else
             {
+                RaceAudioController.NotifyObstacleHit(car);
                 car.ApplyObstacleImpact();
                 if (car.IsPlayerControlled) Toast.Show(ThemeText.ToastImpact, ThemePalette.AlertRed);
             }

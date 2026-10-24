@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: MusicPlaylist
   m_EditorClassIdentifier: Assembly-CSharp:TheRacer:MusicPlaylistCatalog
-  clips: []
+  clips:
+  - {fileID: 8300000, guid: 93a704db72b47b548b0349a06061d6af, type: 3}
   engineStartClip: {fileID: 8300000, guid: 5b544a03ff041de43ae36c52e69f32ae, type: 3}
+  countdownClip: {fileID: 8300000, guid: bc196ece0130e974e9b81919b3ab87cc, type: 3}
+  engineRevClip: {fileID: 8300000, guid: 85f68a7f84ea81a469c583b919af6da6, type: 3}
+  collisionClip: {fileID: 8300000, guid: d0cf2f8e68161344380209eb98fca8ae, type: 3}

@@ -93,12 +93,11 @@ internal sealed class MusicFolderCatalogImporter : AssetPostprocessor
             .Where(clip => clip != null)
             .ToArray();
         catalog.SetClips(clips);
-        AudioClip engineStartClip = AssetDatabase.FindAssets("t:AudioClip", new[] { MusicFolder })
-            .Select(AssetDatabase.GUIDToAssetPath)
-            .Where(path => Path.GetFileNameWithoutExtension(path).IndexOf("engine_start", StringComparison.OrdinalIgnoreCase) >= 0)
-            .Select(AssetDatabase.LoadAssetAtPath<AudioClip>)
-            .FirstOrDefault(clip => clip != null);
-        catalog.SetEngineStartClip(engineStartClip);
+        catalog.SetEngineStartClip(FindMusicAsset(name => name.Contains("engine_start")));
+        catalog.SetRaceEffects(
+            FindMusicAsset(name => name.Contains("321") || name.Contains("countdown")),
+            FindMusicAsset(name => name.Contains("cars after the count down") || name.Contains("engine_rev")),
+            FindMusicAsset(name => name.Contains("oops") || name.Contains("collision")));
         EditorUtility.SetDirty(catalog);
         AssetDatabase.SaveAssets();
     }
@@ -107,6 +106,17 @@ internal sealed class MusicFolderCatalogImporter : AssetPostprocessor
     {
         string lower = name.ToLowerInvariant();
         return lower.Contains("engine") || lower.Contains("sfx") || lower.Contains("horn")
-            || lower.Contains("drift") || lower.Contains("impact");
+            || lower.Contains("drift") || lower.Contains("impact") || lower.Contains("oops")
+            || lower.Contains("collision") || lower.Contains("countdown") || lower.Contains("321")
+            || lower.Contains("cars after the count down");
+    }
+
+    private static AudioClip FindMusicAsset(Func<string, bool> nameMatches)
+    {
+        return AssetDatabase.FindAssets("t:AudioClip", new[] { MusicFolder })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .Where(path => nameMatches(Path.GetFileNameWithoutExtension(path).ToLowerInvariant()))
+            .Select(AssetDatabase.LoadAssetAtPath<AudioClip>)
+            .FirstOrDefault(clip => clip != null);
     }
 }
