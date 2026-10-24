@@ -13,9 +13,11 @@ namespace TheRacer
         private MaterialPropertyBlock _neonBlock;
         private GameObject _modelRoot;
         private Renderer[] _modelRenderers;
+        private readonly List<Renderer> _modelNeonAccents = new List<Renderer>();
         private Texture2D _bodyTexture;
         private Texture2D _bodyMetallic;
         private Texture2D _bodyNormal;
+        private Texture2D _bodyEmission;
         private Texture2D _tireTexture;
         private Texture2D _tireNormal;
         private Texture2D _wheelTexture;
@@ -67,6 +69,7 @@ namespace TheRacer
             _bodyTexture = Resources.Load<Texture2D>(ThemeText.SilverBodyTexturePath);
             _bodyMetallic = Resources.Load<Texture2D>(ThemeText.SilverBodyMetallicPath);
             _bodyNormal = Resources.Load<Texture2D>(ThemeText.SilverBodyNormalPath);
+            _bodyEmission = Resources.Load<Texture2D>(ThemeText.SilverBodyEmissionPath);
             _tireTexture = Resources.Load<Texture2D>(ThemeText.SilverTireTexturePath);
             _tireNormal = Resources.Load<Texture2D>(ThemeText.SilverTireNormalPath);
             _wheelTexture = Resources.Load<Texture2D>(ThemeText.SilverWheelTexturePath);
@@ -129,28 +132,65 @@ namespace TheRacer
             else
                 ApplyRivalImportedTextures();
             _bodyRenderers = _modelRenderers;
-            CreateModelNeonAccents(modelTransform, bounds);
+            CreateModelNeonAccents(modelTransform, new Bounds(Vector3.zero, bounds.size * scale));
             return true;
         }
 
         private void CreateModelNeonAccents(Transform modelTransform, Bounds modelBounds)
         {
-            float halfWidth = Mathf.Clamp(modelBounds.size.x * 0.5f, 0.7f, 1.5f);
-            float frontZ = modelBounds.extents.z * 0.9f;
+            float halfWidth = Mathf.Clamp(modelBounds.size.x * 0.5f, 0.7f, 1.15f);
+            float halfLength = Mathf.Clamp(modelBounds.size.z * 0.5f, 1.35f, 1.95f);
+            float frontZ = halfLength * 0.9f;
             Transform oldParent = _parentOverride;
             _parentOverride = modelTransform;
             Renderer headlight = CreateBlock(ThemeText.HeadlightName, NeonMaterialFactory.NeonBase,
-                new Vector3(0f, 0.2f, frontZ), new Vector3(halfWidth * 1.5f, 0.07f, 0.06f));
-            SetTint(headlight, _profile.neonColor, 2.4f);
+                new Vector3(0f, 0.2f, frontZ), new Vector3(halfWidth * 1.8f, 0.08f, 0.055f));
+            _modelNeonAccents.Add(headlight);
             Renderer underglow = CreateBlock(ThemeText.UnderglowName, NeonMaterialFactory.NeonBase,
-                new Vector3(0f, -0.3f, 0f), new Vector3(halfWidth * 1.4f, 0.035f, modelBounds.size.z * 0.63f));
-            SetTint(underglow, _profile.neonColor, 2.2f);
+                new Vector3(0f, -0.3f, 0f), new Vector3(halfWidth * 1.65f, 0.04f, halfLength * 1.45f));
+            _modelNeonAccents.Add(underglow);
+
+            switch (_profile.neonAccentStyle & 3)
+            {
+                case 0: // Twin race stripes over the hood and roof.
+                    for (int side = -1; side <= 1; side += 2)
+                        _modelNeonAccents.Add(CreateBlock("Twin Neon Racing Stripe", NeonMaterialFactory.NeonBase,
+                            new Vector3(side * halfWidth * 0.22f, 0.31f, frontZ * 0.12f),
+                            new Vector3(0.065f, 0.035f, halfLength * 0.92f)));
+                    break;
+                case 1: // Long illuminated side skirts.
+                    for (int side = -1; side <= 1; side += 2)
+                        _modelNeonAccents.Add(CreateBlock("Neon Side Skirt", NeonMaterialFactory.NeonBase,
+                            new Vector3(side * halfWidth * 0.88f, -0.02f, 0f),
+                            new Vector3(0.055f, 0.06f, halfLength * 1.55f)));
+                    break;
+                case 2: // A bright center spine and rear wing edge.
+                    _modelNeonAccents.Add(CreateBlock("Neon Center Spine", NeonMaterialFactory.NeonBase,
+                        new Vector3(0f, 0.36f, -halfLength * 0.03f),
+                        new Vector3(0.075f, 0.035f, halfLength * 1.12f)));
+                    _modelNeonAccents.Add(CreateBlock("Neon Rear Wing", NeonMaterialFactory.NeonBase,
+                        new Vector3(0f, 0.48f, -halfLength * 0.72f),
+                        new Vector3(halfWidth * 1.5f, 0.045f, 0.08f)));
+                    break;
+                default: // Segmented fender markers.
+                    for (int side = -1; side <= 1; side += 2)
+                    for (int axle = -1; axle <= 1; axle += 2)
+                        _modelNeonAccents.Add(CreateBlock("Neon Fender Marker", NeonMaterialFactory.NeonBase,
+                            new Vector3(side * halfWidth * 0.72f, 0.16f, axle * halfLength * 0.52f),
+                            new Vector3(0.075f, 0.05f, 0.32f)));
+                    break;
+            }
             _parentOverride = oldParent;
         }
 
         private void ApplyRivalImportedTextures()
         {
             bool isBlackRace = _profile.modelResourcePath == ThemeText.BlackRaceTouringResourcePath;
+            bool isFlyingTransport = _profile.modelResourcePath == ThemeText.FlyingTransportResourcePath
+                || _profile.modelResourcePath == ThemeText.FlyingTransportAlternateResourcePath;
+            // Newly registered vehicles keep the materials authored with their imported FBX.
+            if (!isBlackRace && !isFlyingTransport)
+                return;
             string albedoPath = isBlackRace ? ThemeText.BlackRaceTouringAlbedoPath : ThemeText.FlyingTransportAlbedoPath;
             string metallicPath = isBlackRace ? ThemeText.BlackRaceTouringMetallicPath : ThemeText.FlyingTransportMetallicPath;
             string normalPath = isBlackRace ? ThemeText.BlackRaceTouringNormalPath : ThemeText.FlyingTransportNormalPath;
@@ -229,7 +269,7 @@ namespace TheRacer
                     else
                     {
                         if (bodyMaterial == null)
-                            bodyMaterial = NeonMaterialFactory.SilverBody(_bodyTexture, _bodyMetallic, _bodyNormal);
+                            bodyMaterial = NeonMaterialFactory.SilverBody(_bodyTexture, _bodyMetallic, _bodyNormal, _bodyEmission);
                         replacement = bodyMaterial;
                     }
                     materials[materialIndex] = replacement;
@@ -395,6 +435,8 @@ namespace TheRacer
                 _rightHeadlight.color = _profile.neonColor;
             if (_tailLight != null)
                 _tailLight.color = ThemePalette.AlertRed;
+            for (int i = 0; i < _modelNeonAccents.Count; i++)
+                SetNeon(_modelNeonAccents[i], 2.6f);
         }
 
         /// <summary>Darkens body panels and dims cosmetic lights as health falls.</summary>
@@ -449,7 +491,9 @@ namespace TheRacer
         private void ApplyBodyDamage(float healthRatio)
         {
             Color silverPaint = new Color(0.68f, 0.72f, 0.78f, 1f);
-            Color damagedColor = _modelRoot != null
+            bool silverModel = _modelRoot != null && (string.IsNullOrWhiteSpace(_profile.modelResourcePath)
+                || _profile.modelResourcePath == ThemeText.SilverCarResourcePath);
+            Color damagedColor = silverModel
                 ? Color.Lerp(ThemePalette.Void, silverPaint, 0.35f + healthRatio * 0.65f)
                 : Color.Lerp(ThemePalette.Void, _profile != null ? _profile.bodyColor : ThemePalette.PanelDark,
                     0.45f + healthRatio * 0.55f);

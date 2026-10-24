@@ -1,0 +1,7 @@
+Imported vehicle assets supplied by the project owner:
+
+- Porsche GT3 RS: porsche-gt3-rs.zip. No license/readme file was included in the archive.
+- Cyberpunk Car: cyberpunk-car.zip. No license/readme file was included in the archive.
+- Sci-Fi Vehicle: free-sci-fi-vehicle-007-public-domain-cc0.zip (the contained FBX is named sci-fi_vehicle_006_01.fbx; archive filename states CC0/public domain).
+
+Before redistributing a build or these source assets, confirm the applicable licenses for the first two models.

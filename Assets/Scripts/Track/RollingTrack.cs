@@ -42,6 +42,75 @@ namespace TheRacer
         /// <summary>World Z where tile index 0 begins.</summary>
         public float RoadStartZ { get; private set; }
         public float RoadWidth => _config != null ? _config.width : 34f;
+        public float AreaLength => _areaLength;
+        public int AreaCount => _areas.Length;
+
+        /// <summary>Repeats an authored roadside section around the existing rolling-road loop.</summary>
+        public void CopyRoadsideLayout(Transform layoutRoot, float authoredSectionLength, int repeatCount)
+        {
+            if (layoutRoot == null || _areaLength <= 0f) return;
+            authoredSectionLength = Mathf.Max(1f, authoredSectionLength);
+            repeatCount = Mathf.Max(1, repeatCount);
+            float cycleLength = _areaLength * _areas.Length;
+            float repeatLength = cycleLength / repeatCount;
+            float longitudinalScale = repeatLength / authoredSectionLength;
+            for (int i = 0; i < layoutRoot.childCount; i++)
+            {
+                Transform entry = layoutRoot.GetChild(i);
+                if (entry.name == "Left Side" || entry.name == "Right Side")
+                {
+                    for (int childIndex = 0; childIndex < entry.childCount; childIndex++)
+                    {
+                        CopyRoadsideProp(layoutRoot, entry.GetChild(childIndex), repeatCount,
+                            repeatLength, longitudinalScale, cycleLength);
+                    }
+                }
+                else if (entry.GetComponentInChildren<Renderer>(true) != null)
+                {
+                    // Scene props such as the backing cube may sit directly under the layout root.
+                    CopyRoadsideProp(layoutRoot, entry, repeatCount, repeatLength,
+                        longitudinalScale, cycleLength);
+                }
+            }
+        }
+
+        private void CopyRoadsideProp(Transform layoutRoot, Transform source, int repeatCount,
+            float repeatLength, float longitudinalScale, float cycleLength)
+        {
+            Vector3 position = layoutRoot.InverseTransformPoint(source.position);
+            position.z *= longitudinalScale;
+            Quaternion localRotation = Quaternion.Inverse(layoutRoot.rotation) * source.rotation;
+            Vector3 localScale = source.lossyScale;
+
+            // A little overhang is intentional: props just past the section endpoint
+            // wrap naturally into the next repetition.
+            for (int repeat = 0; repeat < repeatCount; repeat++)
+            {
+                float cycleZ = Mathf.Repeat(position.z + repeat * repeatLength, cycleLength);
+                int slot = Mathf.Clamp(Mathf.FloorToInt(cycleZ / _areaLength), 0, _areas.Length - 1);
+                GameObject copy = Instantiate(source.gameObject, _areas[slot].root, false);
+                copy.name = source.name;
+                copy.transform.localPosition = new Vector3(position.x, position.y, cycleZ - slot * _areaLength);
+                copy.transform.localRotation = localRotation;
+                copy.transform.localScale = localScale;
+                if (!source.name.EndsWith("Building Ground", StringComparison.Ordinal))
+                    AlignObjectBottomToRoad(copy.transform);
+            }
+        }
+
+        private static void AlignObjectBottomToRoad(Transform instance)
+        {
+            Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return;
+            float lowestY = float.PositiveInfinity;
+            for (int i = 0; i < renderers.Length; i++)
+                if (renderers[i] != null) lowestY = Mathf.Min(lowestY, renderers[i].bounds.min.y);
+            if (float.IsInfinity(lowestY)) return;
+
+            Vector3 position = instance.localPosition;
+            position.y -= lowestY;
+            instance.localPosition = position;
+        }
 
         /// <summary>Returns a world position on the currently built straight rolling road.</summary>
         public Vector3 GetRoadPoint(float distance, float lateral)
@@ -205,8 +274,9 @@ namespace TheRacer
                     GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     wall.name = ThemeText.WallName;
                     wall.transform.SetParent(parent, false);
-                    wall.transform.localPosition = new Vector3(side * (_config.width * 0.5f + 0.45f), 0.65f, z);
-                    wall.transform.localScale = new Vector3(0.55f, 1.3f, wallLength);
+                    // Extend the wall 10 cm below the road edge to close the visible gap.
+                    wall.transform.localPosition = new Vector3(side * (_config.width * 0.5f + 0.45f), 0.60f, z);
+                    wall.transform.localScale = new Vector3(0.55f, 1.4f, wallLength);
                     wall.GetComponent<Renderer>().sharedMaterial = _barrierMaterial;
                 }
             }

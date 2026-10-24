@@ -1,0 +1,10 @@
+Manual roadside placement
+
+1. In Unity, stop Play mode before editing the scene.
+2. In the Main scene Hierarchy, expand GameBootstrap > Roadside Props - EDIT ME.
+3. Drag a model from Assets/Models/PlaceableCityProps onto Left Side or Right Side.
+4. Move the model beyond the pink wall guide; the yellow guide marks the suggested placement line. Use the Scene view and duplicate models with Ctrl+D as needed.
+5. Place props along local Z from 0 to about 1890. The two section dividers mark the three 630 m chunks. Keep objects outside the road/wall so they do not obstruct racers.
+6. Press Play. The source layout is hidden in Play mode; runtime copies are attached to the rolling road sections and recycle with them.
+
+The scene objects under Roadside Props - EDIT ME are the editable originals. Do not put manually authored props under Track Runtime; that object is rebuilt by the game.

@@ -31,16 +31,16 @@ namespace TheRacer
     [Serializable]
     public sealed class CameraRigConfig
     {
-        [Min(0f)] public float chaseHeight = 3.2f;
-        [Min(0f)] public float chaseDistance = 7.2f;
-        [Min(0f)] public float speedDistanceBonus = 3.5f;
+        [Min(0f)] public float chaseHeight = 3.0f;
+        [Min(0f)] public float chaseDistance = 6.4f;
+        [Min(0f)] public float speedDistanceBonus = 3.0f;
         [Min(0f)] public float positionDamping = 5f;
         [Min(0f)] public float rotationDamping = 7f;
         [Min(0f)] public float lookAheadDistance = 3.2f;
         [Min(0f)] public float hoodHeight = 1.05f;
         [Min(0f)] public float hoodForwardOffset = 1.12f;
-        [Range(1f, 179f)] public float baseFieldOfView = 65f;
-        [Range(1f, 179f)] public float maxFieldOfView = 78f;
+        [Range(1f, 179f)] public float baseFieldOfView = 62f;
+        [Range(1f, 179f)] public float maxFieldOfView = 74f;
         [Min(0f)] public float cameraCollisionRadius = 0.28f;
         [Min(0f)] public float shakeDuration = 0.32f;
     }

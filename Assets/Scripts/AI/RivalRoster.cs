@@ -2,10 +2,10 @@ using UnityEngine;
 
 namespace TheRacer
 {
-    /// <summary>Named rival data; the current build activates the first two entries only.</summary>
+    /// <summary>Named rival data for the four active AI racers.</summary>
     public static class RivalRoster
     {
-        public const int ActiveRivalCount = 2;
+        public const int ActiveRivalCount = 4;
 
         public static readonly RivalDefinition[] All =
         {
@@ -46,13 +46,14 @@ namespace TheRacer
             return new CarVisualProfile
             {
                 bodyType = CarBodyType.StreetWedge,
-                bodyColor = ThemePalette.PanelDark,
+                bodyColor = Color.Lerp(ThemePalette.PanelDark, NeonColor, 0.3f),
                 neonColor = NeonColor,
                 spoiler = Spoiler,
                 widebody = Widebody,
                 handle = Handle,
                 modelResourcePath = ModelResourcePath,
-                modelYawCorrection = ModelResourcePath == ThemeText.SilverCarResourcePath ? 180f : 0f
+                modelYawCorrection = ModelResourcePath == ThemeText.SilverCarResourcePath ? 180f : 0f,
+                neonAccentStyle = (int)Personality % 4
             };
         }
     }

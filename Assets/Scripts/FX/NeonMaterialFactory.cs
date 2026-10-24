@@ -16,9 +16,16 @@ namespace TheRacer
         public static Material WheelRubber => Get(4, ThemePalette.Void, 0.05f, 0.28f, false);
         public static Material PlateMaterial => Get(5, Color.white, 0f, 0.5f, true);
 
-        public static Material SilverBody(Texture2D albedo, Texture2D metallic, Texture2D normal)
+        public static Material SilverBody(Texture2D albedo, Texture2D metallic, Texture2D normal, Texture2D emission)
         {
-            return GetTextured(6, "Silver Car Body", albedo, metallic, normal, 0.25f, 0.72f);
+            Material material = GetTextured(6, "Silver Car Body", albedo, metallic, normal, 0.25f, 0.72f);
+            if (emission != null && material.HasProperty("_EmissionMap"))
+            {
+                material.SetTexture("_EmissionMap", emission);
+                material.EnableKeyword("_EMISSION");
+                SetColor(material, ThemeText.EmissionProperty, Color.white);
+            }
+            return material;
         }
 
         public static Material SilverTire(Texture2D albedo, Texture2D normal)

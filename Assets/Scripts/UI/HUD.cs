@@ -12,7 +12,7 @@ namespace TheRacer
         private static readonly string[] ThreeDigitCache = BuildThreeDigitCache();
         private readonly Image[] _arcSegments = new Image[ArcCount];
         private readonly Image[][] _speedSegments = new Image[3][];
-        private NeonText _lapText, _positionText;
+        private NeonText _positionText;
         private Text _currentTimeText, _bestTimeText, _distanceText, _remainingText;
         private Text _zoneText, _wrongWayText, _toastText, _startPrompt, _dodgesText;
         private Image _coreFill;
@@ -31,7 +31,7 @@ namespace TheRacer
         private float _bestLap = -1f;
         private int _observedLap;
         private int _shownSpeed = -1, _shownDistance = -1, _shownRemaining = -1, _shownZone = -1;
-        private int _shownPosition = -1, _shownLap = -1, _shownDodges = -1, _shownCurrentTimeBucket = -1, _shownBestTimeBucket = -1;
+        private int _shownPosition = -1, _shownDodges = -1, _shownCurrentTimeBucket = -1, _shownBestTimeBucket = -1;
         private float _wrongWayTime, _toastRemaining;
         private Color _toastColor;
         private bool _raceStarted;
@@ -88,16 +88,14 @@ namespace TheRacer
             _coreFill = UIBuilder.Bar(root, ThemeText.HudCorePanelName + " Fill", ThemePalette.NeonMagenta);
             SetAnchors(_coreFill.rectTransform, new Vector2(0.32f, 0.865f), new Vector2(0.53f, 0.90f));
 
-            _lapText = new NeonText(root, ThemeText.HudLapCounter, ThemeText.HudInitialLap, 26, ThemePalette.AcidYellow,
-                TextAnchor.MiddleCenter, new Vector2(0.55f, 0.89f), new Vector2(0.68f, 0.97f), null);
             MakeText(root, ThemeText.HudCurrentLapTime, ThemeText.HudCurrentLapTime, 16, ThemePalette.HudMuted,
-                TextAnchor.MiddleCenter, new Vector2(0.68f, 0.85f), new Vector2(0.82f, 0.89f));
+                TextAnchor.MiddleCenter, new Vector2(0.55f, 0.85f), new Vector2(0.75f, 0.89f));
             _currentTimeText = MakeText(root, ThemeText.HudCurrentLapTime, ThemeText.HudCurrentTimeInitial, 22, ThemePalette.HudText,
-                TextAnchor.MiddleCenter, new Vector2(0.68f, 0.89f), new Vector2(0.82f, 0.97f));
+                TextAnchor.MiddleCenter, new Vector2(0.55f, 0.89f), new Vector2(0.75f, 0.97f));
             MakeText(root, ThemeText.HudBestLapTime, ThemeText.HudBestLapTime, 16, ThemePalette.HudMuted,
-                TextAnchor.MiddleCenter, new Vector2(0.82f, 0.85f), new Vector2(0.97f, 0.89f));
+                TextAnchor.MiddleCenter, new Vector2(0.76f, 0.85f), new Vector2(0.96f, 0.89f));
             _bestTimeText = MakeText(root, ThemeText.HudBestLapTime, ThemeText.HudBestTimeInitial, 22, ThemePalette.NeonMagenta,
-                TextAnchor.MiddleCenter, new Vector2(0.82f, 0.89f), new Vector2(0.97f, 0.97f));
+                TextAnchor.MiddleCenter, new Vector2(0.76f, 0.89f), new Vector2(0.96f, 0.97f));
             _positionText = new NeonText(root, ThemeText.HudPosition, ThemeText.HudPositionInitial, 22, ThemePalette.NeonCyan,
                 TextAnchor.MiddleCenter, new Vector2(0.85f, 0.80f), new Vector2(0.98f, 0.85f), null);
             _zoneText = MakeText(root, ThemeText.HudZoneNeonStrip, ThemeText.HudZoneNeonStrip, 18, ThemePalette.NeonMagenta,
@@ -230,13 +228,6 @@ namespace TheRacer
                 _shownCurrentTimeBucket = -1;
             }
 
-            int totalLaps = Mathf.CeilToInt(_raceDistance / _lapLength);
-            int displayedLap = Mathf.Min(totalLaps, lapIndex + 1);
-            if (displayedLap != _shownLap)
-            {
-                _shownLap = displayedLap;
-                _lapText.Set(ThemeText.HudLapCounter + " " + displayedLap + ThemeText.HudPositionFormatSlash + totalLaps);
-            }
             int currentTimeBucket = Mathf.FloorToInt(Mathf.Max(0f, totalRaceTime - _lapStartedAt) * 10f);
             if (currentTimeBucket != _shownCurrentTimeBucket)
             {
@@ -306,7 +297,7 @@ namespace TheRacer
 
         private void InvalidateDisplayCache()
         {
-            _shownSpeed = _shownDistance = _shownRemaining = _shownZone = _shownPosition = _shownLap = _shownDodges = -1;
+            _shownSpeed = _shownDistance = _shownRemaining = _shownZone = _shownPosition = _shownDodges = -1;
             _shownCurrentTimeBucket = _shownBestTimeBucket = -1;
         }
 

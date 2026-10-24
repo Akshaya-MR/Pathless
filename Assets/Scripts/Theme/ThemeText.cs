@@ -11,7 +11,6 @@ namespace TheRacer
         public const string HudSpeed = "KM/H";
         public const string HudCurrentLapTime = "CURRENT LAP";
         public const string HudBestLapTime = "BEST LAP";
-        public const string HudLapCounter = "LAP";
         public const string HudDodges = "OBSTACLES DODGED";
         public const string HudDodgesInitial = "OBSTACLES DODGED 000";
         public const string HudDistanceFormat = "00000";
@@ -40,7 +39,6 @@ namespace TheRacer
         public const string HudRacePanelName = "Race Timing Panel";
         public const string HudCorePanelName = "Overclock Core Panel";
         public const string HudOverclock = "OVERCLOCK CORE";
-        public const string HudLap = "LAP";
         public const string HudBest = "BEST";
         public const string HudPosition = "POSITION";
         public const string HudWrongWay = "WRONG WAY";
@@ -50,7 +48,6 @@ namespace TheRacer
         public const string HudZoneCorpSpire = "CORP SPIRE";
         public const string HudNoTime = "--:--.-";
         public const string HudInitialTime = "00:00.0";
-        public const string HudInitialLap = "LAP 1/3";
         public const string HudInitialPosition = "1/1";
         public const string ToastDrift = "BURN BANKED";
         public const string ToastLapComplete = "LAP COMPLETE";
@@ -85,7 +82,6 @@ namespace TheRacer
         public const string SpeedRingName = "Speedometer Ring";
         public const string SpeedRingBackgroundName = "Speedometer Ring Base";
         public const string HudSpeedValueInitial = "000";
-        public const string HudLapInitial = "LAP 1/3";
         public const string HudPositionInitial = "1/3";
         public const string HudWaitingPrompt = "PRESS ENTER TO START";
         public const string HudPositionFormatSlash = "/";
@@ -142,6 +138,7 @@ namespace TheRacer
         public const string SilverBodyTexturePath = "CarModels/SilverRetroCar/Textures/SRC_AlbedoTransparency";
         public const string SilverBodyMetallicPath = "CarModels/SilverRetroCar/Textures/SRC_MetallicSmoothness";
         public const string SilverBodyNormalPath = "CarModels/SilverRetroCar/Textures/SRC_Normal";
+        public const string SilverBodyEmissionPath = "CarModels/SilverRetroCar/Textures/SRC_Emission";
         public const string SilverTireTexturePath = "CarModels/SilverRetroCar/Textures/Tires/SRC_Tire_AlbedoTransparency";
         public const string SilverTireNormalPath = "CarModels/SilverRetroCar/Textures/Tires/SRC_Tire_Normal";
         public const string SilverWheelTexturePath = "CarModels/SilverRetroCar/Textures/Wheels/SRC Wheel_AlbedoTransparency";

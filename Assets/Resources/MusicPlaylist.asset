@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: MusicPlaylist
+  m_EditorClassIdentifier: Assembly-CSharp:TheRacer:MusicPlaylistCatalog
+  clips: []
+  engineStartClip: {fileID: 8300000, guid: 5b544a03ff041de43ae36c52e69f32ae, type: 3}

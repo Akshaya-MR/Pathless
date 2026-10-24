@@ -110,6 +110,7 @@ namespace TheRacer
             float headingError = Mathf.Atan2(localTarget.x, Mathf.Max(1f, localTarget.z));
             float yawRate = Vector3.Dot(_body.angularVelocity, Vector3.up);
             _steer = Mathf.Clamp(headingError * 3.1f - yawRate * 0.18f + _mistakeSteer, -1f, 1f);
+            ApplyPlayerBlock();
 
             float curvature = GetUpcomingCurvature(distance, lookAhead);
             ApplyAvoidance(ref curvature);
@@ -140,32 +141,62 @@ namespace TheRacer
 
         private void ApplyAvoidance(ref float curvature)
         {
-            Vector3 origin = _car.transform.position + Vector3.up * 0.5f;
-            int hitCount = Physics.RaycastNonAlloc(origin, _car.transform.forward, _avoidHits, 12f,
-                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
             float nearest = float.PositiveInfinity;
             RaycastHit selected = default;
             CarController otherCar = null;
-            for (int i = 0; i < hitCount; i++)
+            Vector3 forward = _car.transform.forward;
+            Vector3 right = _car.transform.right;
+            Vector3 baseOrigin = _car.transform.position + Vector3.up * 0.65f;
+            // Three forward sight lines approximate the width of the car, including track-edge barriers.
+            for (int probe = -1; probe <= 1; probe++)
             {
-                RaycastHit hit = _avoidHits[i];
-                if (hit.collider == null || hit.collider.transform.IsChildOf(_car.transform) || hit.distance >= nearest) continue;
-                nearest = hit.distance;
-                selected = hit;
-                otherCar = _positions != null ? _positions.GetRacerFromCollider(hit.collider) : null;
+                Vector3 origin = baseOrigin + right * (probe * 1.15f);
+                int hitCount = Physics.RaycastNonAlloc(origin, forward, _avoidHits, 20f,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Collide);
+                for (int i = 0; i < hitCount; i++)
+                {
+                    RaycastHit hit = _avoidHits[i];
+                    if (hit.collider == null || hit.collider.transform.IsChildOf(_car.transform) || hit.distance >= nearest) continue;
+                    TrackPickup pickup = hit.collider.GetComponentInParent<TrackPickup>();
+                    if (pickup != null && pickup.IsBooster) continue;
+                    nearest = hit.distance;
+                    selected = hit;
+                    otherCar = _positions != null ? _positions.GetRacerFromCollider(hit.collider) : null;
+                }
             }
-            if (nearest >= 12f) return;
-            float side = Vector3.Dot(selected.point - _car.transform.position, _car.transform.right);
+            if (nearest >= 20f) return;
+            float side = Vector3.Dot(selected.collider.bounds.center - _car.transform.position, right);
             if (otherCar != null && _personality.aggression > 0.8f && nearest < 6f)
                 _steer = Mathf.Clamp(_steer + Mathf.Sign(side) * 0.2f, -1f, 1f);
             else
             {
                 if (_avoidanceRemaining <= 0f)
-                    _avoidLaneOffset = _laneOffset >= 0f ? -5f : 5f;
-                _avoidanceRemaining = 1.2f;
-                _steer = Mathf.Clamp(_steer - Mathf.Sign(side == 0f ? 1f : side) * Mathf.Clamp01((12f - nearest) / 8f), -1f, 1f);
+                {
+                    float escapeDirection = side < 0f ? 1f : -1f;
+                    float laneLimit = Mathf.Max(1f, _track.RoadWidth * 0.5f - 3.5f);
+                    float safeTarget = Mathf.Clamp(_laneOffset + escapeDirection * 5f, -laneLimit, laneLimit);
+                    _avoidLaneOffset = safeTarget - _laneOffset;
+                }
+                _avoidanceRemaining = 1.6f;
+                float urgency = Mathf.Clamp01((20f - nearest) / 14f);
+                _steer = Mathf.Clamp(_steer - Mathf.Sign(side == 0f ? 1f : side) * urgency * 0.85f, -1f, 1f);
             }
-            if (nearest < 7f) curvature = Mathf.Max(curvature, 0.04f);
+            if (nearest < 9f) curvature = Mathf.Max(curvature, 0.04f);
+        }
+
+        /// <summary>Competitive rivals lean toward the player when the player is drawing alongside to pass.</summary>
+        private void ApplyPlayerBlock()
+        {
+            if (_player == null || _personality.aggression < 0.45f) return;
+            Vector3 playerLocal = _car.transform.InverseTransformPoint(_player.transform.position);
+            float sideDistance = Mathf.Abs(playerLocal.x);
+            if (playerLocal.z < -10f || playerLocal.z > 2.5f || sideDistance < 1.5f || sideDistance > 7f
+                || _player.ForwardSpeed < _car.ForwardSpeed - 3.5f || _player.ForwardSpeed < 8f) return;
+
+            float aggression = Mathf.InverseLerp(0.45f, 0.95f, _personality.aggression);
+            float proximity = Mathf.InverseLerp(7f, 2f, sideDistance);
+            float blockSteer = Mathf.Lerp(0.12f, 0.38f, aggression) * proximity * Mathf.Sign(playerLocal.x);
+            _steer = Mathf.Clamp(_steer + blockSteer, -1f, 1f);
         }
 
         private float GetRubberBandFactor()

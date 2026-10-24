@@ -279,6 +279,7 @@ namespace TheRacer
 
         private void OnCollisionEnter(Collision collision)
         {
+            RaceAudioController.NotifyCarCollision(this, collision);
             float impact = collision.relativeVelocity.magnitude;
             if (impact < _config.impactThreshold)
                 return;
@@ -298,16 +299,16 @@ namespace TheRacer
         }
 
         /// <summary>Starts or refreshes the temporary pickup speed boost.</summary>
-        public void ApplyPickupBoost(float duration)
+        public void ApplyPickupBoost(float duration, float speedMultiplier = 1.5f)
         {
             _pickupBoostRemaining = Mathf.Max(_pickupBoostRemaining, duration);
-            _pickupSpeedMultiplier = 1.5f;
+            _pickupSpeedMultiplier = Mathf.Max(1f, speedMultiplier);
             Vector3 forward = Vector3.ProjectOnPlane(transform.forward, _groundNormal).normalized;
             if (forward.sqrMagnitude < 0.5f)
                 forward = transform.forward;
             Vector3 velocity = ReadVelocity();
             float currentForwardSpeed = Vector3.Dot(velocity, forward);
-            float boostedForwardSpeed = Mathf.Max(currentForwardSpeed + 14f, velocity.magnitude + 4f);
+            float boostedForwardSpeed = Mathf.Max(currentForwardSpeed, 0f) * _pickupSpeedMultiplier;
             boostedForwardSpeed = Mathf.Min(boostedForwardSpeed, _config.maxSpeed * _pickupSpeedMultiplier);
             boostedForwardSpeed = Mathf.Max(currentForwardSpeed, boostedForwardSpeed);
             WriteVelocity(velocity + forward * (boostedForwardSpeed - currentForwardSpeed));

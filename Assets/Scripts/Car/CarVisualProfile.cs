@@ -23,6 +23,7 @@ namespace TheRacer
         public string handle = ThemeText.DefaultDriverHandle;
         public string modelResourcePath;
         public float modelYawCorrection = 180f;
+        [Range(0, 3)] public int neonAccentStyle;
 
         public CarVisualProfile Copy()
         {
@@ -35,7 +36,8 @@ namespace TheRacer
                 widebody = widebody,
                 handle = handle,
                 modelResourcePath = modelResourcePath,
-                modelYawCorrection = modelYawCorrection
+                modelYawCorrection = modelYawCorrection,
+                neonAccentStyle = neonAccentStyle
             };
         }
     }

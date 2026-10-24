@@ -1,0 +1,10 @@
+Placeable road-side models
+
+KayKit City Builder Bits 1.0
+- Imported Unity FBX models and citybits_texture.png from KayKit_City_Builder_Bits_1.0_FREE.zip.
+- The included License.txt marks these assets Creative Commons Zero (CC0).
+- Optional creator credit: Kay Lousberg, www.kaylousberg.com.
+
+Free Sample / Building_06.fbx
+- Imported from Free Sample.zip.
+- No license information was included in that archive; verify your usage/redistribution rights before sharing a build containing it.
